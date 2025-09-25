@@ -2,14 +2,14 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "yourdockerhub/laravel-app" // your DockerHub repo
+        DOCKER_IMAGE = "rinuaws/laravel-app" // your DockerHub repo
     }
 
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                     url: 'https://github.com/youruser/laravel-app.git',
+                     url: 'https://github.com/rinuaws3-debug/jenkins-laravel.git',
                      credentialsId: 'github-cred'
             }
         }
