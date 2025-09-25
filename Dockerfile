@@ -6,11 +6,12 @@ RUN composer install --no-dev --no-scripts --no-progress --prefer-dist
 COPY . .
 RUN composer dump-autoload --optimize
 
-# Stage 2: Run PHP + Nginx
+# Stage 2: PHP-FPM + Nginx
 FROM php:8.2-fpm-alpine AS app
 
-# Install system deps, extensions
-RUN docker-php-ext-install pdo pdo_mysql
+# Install Nginx, Supervisor, and PHP extensions
+RUN apk add --no-cache nginx supervisor bash \
+    && docker-php-ext-install pdo pdo_mysql
 
 WORKDIR /var/www/html
 
@@ -20,8 +21,13 @@ COPY --from=build /app ./
 # Copy Nginx config
 COPY ./docker/nginx.conf /etc/nginx/conf.d/default.conf
 
-# Permissions for Laravel storage/bootstrap/cache
+# Copy Supervisor config to run both php-fpm & nginx
+COPY ./docker/supervisord.conf /etc/supervisord.conf
+
+# Laravel storage/bootstrap/cache permissions
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Use supervisor or run php-fpm + nginx together (simplest: use docker-compose or separate containers)
+EXPOSE 80
+
+CMD ["supervisord", "-c", "/etc/supervisord.conf"]
 
